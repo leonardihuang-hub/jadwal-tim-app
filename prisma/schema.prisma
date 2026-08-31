@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Master data karyawan -- dulunya hardcode di src/lib/constants.ts, sekarang
+// di database supaya bisa dikelola dari halaman /team (khusus supervisor)
+// tanpa perlu edit kode. id tetap dipakai sebagai slug pendek (bukan cuid)
+// karena sudah dipakai sebagai referensi di banyak tempat (assignment shift,
+// leave/swap request, dst).
+model Employee {
+  id           String   @id
+  name         String
+  email        String   @unique
+  isActive     Boolean  @default(true)
+  isSupervisor Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LeaveRequest {
+  id         String    @id @default(uuid())
+  employeeId String
+  type       String // "cuti" | "ganti_hari"
+  date       String // ISO date pengajuan cuti / ganti hari
+  reason     String
+  status     String    @default("pending") // "pending" | "approved" | "rejected"
+  approverId String?
+  createdAt  DateTime  @default(now())
+  decidedAt  DateTime?
+}
+
+model SwapRequest {
+  id          String    @id @default(uuid())
+  requesterId String
+  targetId    String
+  date        String
+  kind        String // "shift" | "ganti_hari"
+  status      String    @default("pending") // "pending" | "approved" | "rejected"
+  approverId  String?
+  createdAt   DateTime  @default(now())
+  decidedAt   DateTime?
+}
