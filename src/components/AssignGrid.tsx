@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { addDays, addWeeks, format, startOfWeek, subWeeks } from "date-fns";
 import { useEmployees } from "@/components/EmployeeProvider";
+import MultiSelect from "@/components/MultiSelect";
 import type { DaySchedule } from "@/types/schedule";
 import type { ValidationIssue } from "@/lib/validators";
 
@@ -47,10 +48,6 @@ export default function AssignGrid() {
 
   function updateDay(date: string, patch: Partial<DaySchedule>) {
     setDays((prev) => ({ ...prev, [date]: { ...prev[date], ...patch } }));
-  }
-
-  function selectedIds(e: React.ChangeEvent<HTMLSelectElement>): string[] {
-    return Array.from(e.target.selectedOptions).map((o) => o.value);
   }
 
   async function saveDay(date: string) {
@@ -121,9 +118,6 @@ export default function AssignGrid() {
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-xs text-ink/40">
-            Cuti / GH / OT bisa pilih lebih dari satu orang -- tahan Ctrl (Cmd di Mac) sambil klik.
-          </p>
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -187,50 +181,26 @@ export default function AssignGrid() {
                             </p>
                           )}
                         </td>
-                        <td className="px-4 py-3">
-                          <select
-                            multiple
-                            size={3}
-                            className="field-input"
-                            value={day.cutiEmployeeIds}
-                            onChange={(e) => updateDay(date, { cutiEmployeeIds: selectedIds(e) })}
-                          >
-                            {activeEmployees.map((e) => (
-                              <option key={e.id} value={e.id}>
-                                {e.name}
-                              </option>
-                            ))}
-                          </select>
+                        <td className="w-44 px-4 py-3">
+                          <MultiSelect
+                            options={activeEmployees}
+                            selected={day.cutiEmployeeIds}
+                            onChange={(ids) => updateDay(date, { cutiEmployeeIds: ids })}
+                          />
                         </td>
-                        <td className="px-4 py-3">
-                          <select
-                            multiple
-                            size={3}
-                            className="field-input"
-                            value={day.gantiHariEmployeeIds}
-                            onChange={(e) => updateDay(date, { gantiHariEmployeeIds: selectedIds(e) })}
-                          >
-                            {activeEmployees.map((e) => (
-                              <option key={e.id} value={e.id}>
-                                {e.name}
-                              </option>
-                            ))}
-                          </select>
+                        <td className="w-44 px-4 py-3">
+                          <MultiSelect
+                            options={activeEmployees}
+                            selected={day.gantiHariEmployeeIds}
+                            onChange={(ids) => updateDay(date, { gantiHariEmployeeIds: ids })}
+                          />
                         </td>
-                        <td className="px-4 py-3">
-                          <select
-                            multiple
-                            size={3}
-                            className="field-input"
-                            value={day.overtimeEmployeeIds}
-                            onChange={(e) => updateDay(date, { overtimeEmployeeIds: selectedIds(e) })}
-                          >
-                            {activeEmployees.map((e) => (
-                              <option key={e.id} value={e.id}>
-                                {e.name}
-                              </option>
-                            ))}
-                          </select>
+                        <td className="w-44 px-4 py-3">
+                          <MultiSelect
+                            options={activeEmployees}
+                            selected={day.overtimeEmployeeIds}
+                            onChange={(ids) => updateDay(date, { overtimeEmployeeIds: ids })}
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <button onClick={() => saveDay(date)} disabled={status?.saving} className="btn-secondary">
