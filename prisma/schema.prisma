@@ -18,6 +18,12 @@ model Employee {
   email        String   @unique
   isActive     Boolean  @default(true)
   isSupervisor Boolean  @default(false)
+  // Token acak untuk link feed kalender pribadi (/api/calendar/[token]) --
+  // sengaja terpisah dari id (yang gampang ditebak) supaya link kalender
+  // orang lain tidak gampang diakses orang lain. Nullable karena dibuat
+  // belakangan (lazy, lihat getEmployeeCalendarToken) -- karyawan lama belum
+  // punya sampai pertama kali buka halaman /calendar.
+  calendarToken String?  @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 const LINKS = [
   { href: "/", label: "Dashboard" },
   { href: "/requests", label: "Pengajuan saya" },
+  { href: "/calendar", label: "Kalender saya" },
   { href: "/assign", label: "Assign jadwal", supervisorOnly: true },
   { href: "/approvals", label: "Approval", supervisorOnly: true },
   { href: "/team", label: "Master Karyawan", supervisorOnly: true }

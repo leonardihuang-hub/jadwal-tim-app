@@ -155,6 +155,24 @@ yang tidak boleh diassign role tertentu minggu itu) sudah ditegakkan lewat
 `lib/validators.ts`. Kolom "Piket Sabtu" sengaja belum didukung (keputusan
 produk saat ini).
 
+**Kalender pribadi (Google Calendar) sudah ada** -- halaman `/calendar`
+("Kalender saya", bisa diakses semua karyawan login) menampilkan link feed
+`.ics` pribadi yang bisa di-subscribe di Google Calendar ("Kalender lain" ->
+"Dari URL"). Begitu disubscribe, jadwal orang itu sendiri (Polisi, Middle,
+Piket, GH, Cuti, Libur/OT) otomatis muncul di kalender mereka, dan Google
+akan refresh feed itu sendiri tiap beberapa jam. Implementasinya:
+- `Employee.calendarToken` (kolom baru, nullable+unique) -- token acak per
+  karyawan, dibuat otomatis pertama kali mereka buka `/calendar`
+  (`getEmployeeCalendarToken` di `lib/employees.ts`).
+- `GET /api/calendar/[token]` -- endpoint publik TANPA cek sesi login (Google
+  Calendar butuh akses tanpa cookie), keamanannya ada di token acak itu
+  sendiri di URL. Baca jadwal 14 hari ke belakang s/d 90 hari ke depan lewat
+  `fetchScheduleRange`, lalu diubah jadi teks `.ics` oleh `lib/ics.ts`.
+- Sengaja pakai feed read-only (bukan push 2 arah lewat Calendar API +
+  OAuth) supaya tidak perlu scope Google tambahan / consent ulang dari tiap
+  karyawan -- trade-off-nya refresh tidak instan (tergantung jadwal polling
+  Google, biasa beberapa jam sekali).
+
 ## Yang masih perlu dikerjakan (lanjutkan di Claude Code)
 
 1. **Email karyawan** -- buka `/team` (login sebagai supervisor, misal Diana
