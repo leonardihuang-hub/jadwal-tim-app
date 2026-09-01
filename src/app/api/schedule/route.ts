@@ -4,7 +4,20 @@ import { authOptions } from "@/lib/auth";
 import { fetchScheduleRange, writeDaySchedule } from "@/lib/googleSheets";
 import { validateDaySchedule } from "@/lib/validators";
 import { getEmployees } from "@/lib/employees";
+import { syncDayToCalendars } from "@/lib/googleCalendarSync";
 import type { DaySchedule } from "@/types/schedule";
+
+function emptyDay(date: string): DaySchedule {
+  return {
+    date,
+    isHoliday: false,
+    overtimeEmployeeIds: [],
+    cutiEmployeeIds: [],
+    gantiHariEmployeeIds: [],
+    offMiddleEmployeeIds: [],
+    offMonitoringEmployeeIds: []
+  };
+}
 
 // GET /api/schedule?start=2026-08-01&end=2026-08-31
 export async function GET(req: NextRequest) {
@@ -55,7 +68,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const [oldDay] = await fetchScheduleRange(day.date, day.date);
     await writeDaySchedule(day);
+    try {
+      await syncDayToCalendars(oldDay ?? emptyDay(day.date), day);
+    } catch (err) {
+      console.error(`Gagal push kalender untuk ${day.date}:`, err);
+    }
     return NextResponse.json({ ok: true, issues });
   } catch (err) {
     console.error(err);

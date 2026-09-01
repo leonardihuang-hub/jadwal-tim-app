@@ -1,4 +1,5 @@
 import type { DaySchedule, Employee } from "@/types/schedule";
+import { eventsForEmployee } from "./scheduleEvents";
 
 // Ubah jadwal jadi feed .ics (format standar RFC 5545) supaya bisa
 // disubscribe langsung di Google Calendar pribadi tiap karyawan -- lihat
@@ -25,46 +26,6 @@ function nextDayStamp(iso: string): string {
   const d = new Date(`${iso}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + 1);
   return dayStamp(d.toISOString().slice(0, 10));
-}
-
-type CalendarEvent = { key: string; summary: string };
-
-// Logika "role apa yang dipegang orang ini hari itu" sengaja disamakan
-// dengan tampilan WeekCalendar/MonthCalendar (Polisi/Middle di hari biasa,
-// Piket di hari Minggu, Libur/OT di tanggal merah) supaya konsisten dengan
-// yang dilihat di dashboard.
-function eventsForEmployee(day: DaySchedule, employeeId: string): CalendarEvent[] {
-  const events: CalendarEvent[] = [];
-  const dayOfWeek = new Date(`${day.date}T00:00:00Z`).getUTCDay();
-
-  if (day.isHoliday) {
-    if (day.overtimeEmployeeIds.includes(employeeId)) {
-      events.push({
-        key: "ot",
-        summary: `Libur/OT${day.holidayName ? ` (${day.holidayName})` : ""}`
-      });
-    }
-  } else if (dayOfWeek === 0) {
-    if (day.piketMinggu === employeeId) {
-      events.push({ key: "piket", summary: "Piket Minggu" });
-    }
-  } else {
-    if (day.shiftPagiPolisi === employeeId) {
-      events.push({ key: "polisi", summary: "Polisi (Shift Pagi)" });
-    }
-    if (day.shiftMiddle === employeeId) {
-      events.push({ key: "middle", summary: "Shift Middle" });
-    }
-  }
-
-  if (day.cutiEmployeeIds.includes(employeeId)) {
-    events.push({ key: "cuti", summary: "Cuti" });
-  }
-  if (day.gantiHariEmployeeIds.includes(employeeId)) {
-    events.push({ key: "gh", summary: "Ganti Hari (GH)" });
-  }
-
-  return events;
 }
 
 export function buildIcsFeed(employee: Pick<Employee, "id" | "name">, days: DaySchedule[]): string {

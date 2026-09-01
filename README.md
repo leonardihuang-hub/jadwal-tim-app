@@ -219,6 +219,50 @@ akan refresh feed itu sendiri tiap beberapa jam. Implementasinya:
   karyawan -- trade-off-nya refresh tidak instan (tergantung jadwal polling
   Google, biasa beberapa jam sekali).
 
+**Push otomatis (real-time) ke Google Calendar juga sudah ada**, sebagai
+opsi kedua di halaman `/calendar` -- begitu jadwal di-assign (`/assign`)
+atau leave/swap request disetujui (`/approvals`), event langsung
+dibuat/diupdate/dihapus di Google Calendar karyawan yang bersangkutan
+detik itu juga (bukan nunggu Google refresh feed).
+
+- **Perlu OAuth Client Google TERPISAH** (scope `calendar.events`) --
+  BUKAN dipakai bareng `GOOGLE_CLIENT_ID` (login) atau ops-sso (ops-sso
+  cuma balikin `{name,email}`, tidak ada token Calendar sama sekali).
+  Bikin **di project Google Cloud yang sama dengan ops-sso** (supaya bisa
+  pakai consent screen tipe **Internal**, jadi tidak perlu proses
+  verifikasi Google walau scope-nya "sensitive"):
+  1. **APIs & Services -> Library** -> aktifkan **Google Calendar API**.
+  2. **APIs & Services -> Credentials -> Create Credentials -> OAuth
+     client ID**, tipe **Web application**.
+  3. Authorized redirect URIs, tambahkan kedua-duanya:
+     `http://localhost:3000/api/calendar-auth/callback` dan
+     `https://<domain-production>/api/calendar-auth/callback`.
+  4. Isi `GOOGLE_CALENDAR_CLIENT_ID` / `GOOGLE_CALENDAR_CLIENT_SECRET` di
+     `.env` (lokal) dan environment variable Vercel (production).
+  5. Kalau consent screen project itu masih tipe **External** (bukan
+     Internal), scope `calendar.events` butuh proses verifikasi Google
+     untuk dipakai lebih dari 100 user -- untuk tim kecil, cukup tambahkan
+     tiap karyawan sebagai **Test user** di OAuth consent screen.
+- Alur (`src/app/api/calendar-auth/{start,callback,disconnect}/route.ts`):
+  karyawan klik "Hubungkan Google Calendar saya" di `/calendar` -> redirect
+  ke consent screen Google (scope `calendar.events`, `access_type=offline`
+  + `prompt=consent` supaya selalu dapat `refresh_token`) -> `callback`
+  simpan refresh token ke `Employee.googleCalendarRefreshToken` (kolom
+  terpisah, TIDAK pernah ikut ke-select di `EMPLOYEE_SELECT` biasa).
+- `lib/scheduleEvents.ts` -- logika "role apa yang dipegang orang ini hari
+  itu" di-share antara feed `.ics` dan push Calendar API, supaya dua jalur
+  itu selalu konsisten.
+- `lib/googleCalendarSync.ts` -- dipanggil setelah `writeDaySchedule()`
+  sukses (baik dari `/api/schedule` maupun `/api/approvals`), diff state
+  lama vs baru per karyawan yang terhubung, lalu insert/update/delete event
+  lewat `lib/googleCalendar.ts` (REST API langsung via `fetch`, bukan
+  package `googleapis`). **Best-effort**: kalau push gagal (token expired,
+  API Google down, dst), itu di-log tapi TIDAK bikin penyimpanan jadwal ke
+  Sheet gagal -- Sheet tetap sumber kebenaran utama.
+- ID event Calendar API cuma boleh `[a-v0-9]` (base32hex) -- dipakai hash
+  SHA-1 dari `employeeId:tanggal:role` (`calendarEventId()` di
+  `lib/googleCalendar.ts`) supaya stabil & selalu valid.
+
 ## Yang masih perlu dikerjakan (lanjutkan di Claude Code)
 
 1. **Email karyawan** -- buka `/team` (login sebagai supervisor, misal Diana

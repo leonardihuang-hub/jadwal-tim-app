@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fetchScheduleRange, writeDaySchedule } from "@/lib/googleSheets";
+import { syncDayToCalendars } from "@/lib/googleCalendarSync";
 import type { DaySchedule } from "@/types/schedule";
 
 // Endpoint tunggal buat approve/reject, baik untuk leave request maupun
@@ -48,7 +49,13 @@ async function syncApprovedToSheet(date: string, mutate: (day: DaySchedule) => D
   try {
     const [day] = await fetchScheduleRange(date, date);
     if (!day) return;
-    await writeDaySchedule(mutate(day));
+    const nextDay = mutate(day);
+    await writeDaySchedule(nextDay);
+    try {
+      await syncDayToCalendars(day, nextDay);
+    } catch (err) {
+      console.error(`Gagal push kalender untuk approval tanggal ${date}:`, err);
+    }
   } catch (err) {
     console.error(`Gagal sinkron approval tanggal ${date} ke Google Sheet:`, err);
   }

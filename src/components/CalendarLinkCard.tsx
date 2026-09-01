@@ -18,6 +18,13 @@ export default function CalendarLinkCard({ url }: { url: string }) {
   return (
     <div className="card space-y-4 p-5">
       <div>
+        <h2 className="text-sm font-semibold text-ink">Alternatif: subscribe lewat link</h2>
+        <p className="mt-1 text-xs text-ink/60">
+          Tidak perlu kasih izin akses tulis ke Google Calendar, tapi jadwal cuma diperbarui beberapa jam sekali
+          (bukan langsung detik itu juga seperti push otomatis di atas).
+        </p>
+      </div>
+      <div>
         <label className="field-label">Link kalender kamu</label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <input

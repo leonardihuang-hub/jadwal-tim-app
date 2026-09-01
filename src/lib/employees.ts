@@ -95,3 +95,43 @@ export async function getEmployeeCalendarToken(employeeId: string): Promise<stri
 export async function getEmployeeByCalendarToken(token: string): Promise<Employee | null> {
   return prisma.employee.findUnique({ where: { calendarToken: token }, select: EMPLOYEE_SELECT });
 }
+
+// Status koneksi push Google Calendar (untuk ditampilkan di halaman
+// /calendar) -- SENGAJA tidak ikut kirim refresh token-nya sendiri, cuma
+// boolean + tanggal connect.
+export async function getEmployeeCalendarPushStatus(
+  employeeId: string
+): Promise<{ connected: boolean; connectedAt: Date | null }> {
+  const row = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: { googleCalendarRefreshToken: true, googleCalendarConnectedAt: true }
+  });
+  return { connected: Boolean(row?.googleCalendarRefreshToken), connectedAt: row?.googleCalendarConnectedAt ?? null };
+}
+
+export async function setEmployeeCalendarPushToken(employeeId: string, refreshToken: string): Promise<void> {
+  await prisma.employee.update({
+    where: { id: employeeId },
+    data: { googleCalendarRefreshToken: refreshToken, googleCalendarConnectedAt: new Date() }
+  });
+}
+
+export async function clearEmployeeCalendarPushToken(employeeId: string): Promise<void> {
+  await prisma.employee.update({
+    where: { id: employeeId },
+    data: { googleCalendarRefreshToken: null, googleCalendarConnectedAt: null }
+  });
+}
+
+// Dipakai lib/googleCalendarSync.ts SAJA -- perlu refresh token asli buat
+// panggil Calendar API. Terpisah dari getEmployees()/EMPLOYEE_SELECT supaya
+// token itu tidak pernah ke-select "tidak sengaja" di tempat lain.
+export async function getEmployeesWithCalendarPush(): Promise<
+  Array<{ id: string; isActive: boolean; googleCalendarRefreshToken: string }>
+> {
+  const rows = await prisma.employee.findMany({
+    where: { isActive: true, googleCalendarRefreshToken: { not: null } },
+    select: { id: true, isActive: true, googleCalendarRefreshToken: true }
+  });
+  return rows.filter((r): r is typeof r & { googleCalendarRefreshToken: string } => Boolean(r.googleCalendarRefreshToken));
+}

@@ -24,6 +24,13 @@ model Employee {
   // belakangan (lazy, lihat getEmployeeCalendarToken) -- karyawan lama belum
   // punya sampai pertama kali buka halaman /calendar.
   calendarToken String?  @unique
+  // Refresh token OAuth Google Calendar (scope calendar.events) -- diisi
+  // waktu karyawan klik "Hubungkan Google Calendar saya" di halaman
+  // /calendar. Kalau ada, jadwal yang di-assign/di-approve otomatis di-push
+  // sebagai event ke kalender orang itu (bukan cuma nunggu refresh feed
+  // .ics). Null = belum pernah hubungkan / sudah putuskan koneksi.
+  googleCalendarRefreshToken String?
+  googleCalendarConnectedAt  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
