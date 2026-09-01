@@ -1,10 +1,10 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 
-// Titik masuk login "beneran" (bukan dev-login) -- lihat README-OPS-SSO.md
-// §10a. Kita sendiri TIDAK PERNAH bicara ke Google: browser diarahkan ke
-// ops-sso, yang mengurus seluruh pertukaran OAuth dengan Google, lalu
-// mengarahkan balik ke /api/auth/sso/callback di bawah.
+// Titik masuk login "beneran" (bukan dev-login) -- path ini (BUKAN di bawah
+// /api) sesuai README-OPS-SSO.md §10a. Kita sendiri TIDAK PERNAH bicara ke
+// Google: browser diarahkan ke ops-sso, yang mengurus seluruh pertukaran
+// OAuth dengan Google, lalu mengarahkan balik ke /auth/sso/callback.
 export async function GET(req: Request) {
   const baseUrl = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
   const clientId = process.env.OPS_SSO_CLIENT_ID;
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 
   const loginUrl = new URL(`${ssoBaseUrl}/login`);
   loginUrl.searchParams.set("client_id", clientId);
-  loginUrl.searchParams.set("redirect_uri", `${baseUrl}/api/auth/sso/callback`);
+  loginUrl.searchParams.set("redirect_uri", `${baseUrl}/auth/sso/callback`);
   loginUrl.searchParams.set("state", state);
 
   const res = NextResponse.redirect(loginUrl);

@@ -65,7 +65,7 @@ export default function LoginForm({ mode }: { mode: Mode }) {
         ) : (
           <>
             {mode === "sso" && (
-              <a href="/api/auth/sso/login" className="btn-primary mt-6 block w-full">
+              <a href="/auth/sso/login" className="btn-primary mt-6 block w-full">
                 Masuk dengan email @esb.co.id
               </a>
             )}

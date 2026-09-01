@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
             id: "ops-sso",
             name: "SSO ESB",
             // "code" di sini adalah kode sekali-pakai dari ops-sso (lihat
-            // /api/auth/sso/callback), BUKAN kode OAuth Google langsung --
+            // /auth/sso/callback), BUKAN kode OAuth Google langsung --
             // app ini tidak pernah bicara ke Google sama sekali.
             credentials: { code: { label: "code", type: "text" } },
             async authorize(credentials) {
