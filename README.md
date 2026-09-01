@@ -109,11 +109,57 @@ cp .env.example .env
 kosongkan dulu bagian Google (OAuth & Service Account) -- app otomatis jalan
 di mock mode & dev-login (lihat "Status saat ini" di bawah) sampai kamu isi.
 
-### 5. Siapkan database lokal
+### 5. Siapkan database
+
+Database pakai **Postgres** (bukan SQLite -- SQLite tidak cocok dipakai di
+hosting serverless seperti Vercel karena filesystem-nya sementara). Untuk
+lokal, paling gampang pakai instance cloud gratis juga (Neon/Vercel Postgres)
+supaya sama persis dengan production -- isi `DATABASE_URL` di `.env` dengan
+connection string-nya, lalu:
 
 ```
-npx prisma migrate dev
+npx prisma migrate deploy
 ```
+
+(pakai `migrate deploy`, bukan `migrate dev` -- `migrate dev` butuh terminal
+interaktif yang kadang bermasalah di beberapa environment; migrasinya sudah
+tersedia lengkap di `prisma/migrations/`, jadi `deploy` cukup.)
+
+Setelah itu isi data karyawan awal:
+
+```
+node scripts/seed-employees.mjs
+```
+
+## Deploy ke Vercel
+
+1. **Buat database Postgres** -- dari dashboard Vercel: buka project
+   (setelah langkah 2 di bawah) → tab **Storage** → **Create Database** →
+   pilih **Postgres** (Neon) → **Connect** ke project. Vercel otomatis
+   mengisi beberapa env var (`POSTGRES_PRISMA_URL`, dst).
+2. **Import project dari GitHub** -- buka [vercel.com/new](https://vercel.com/new),
+   login/daftar, pilih **Import Git Repository**, pilih repo
+   `jadwal-tim-app` kamu. Vercel otomatis mendeteksi ini project Next.js.
+3. **Isi Environment Variables** (Project Settings → Environment Variables):
+   - `DATABASE_URL` = connection string Postgres dari langkah 1 (pakai yang
+     ada `?pgbouncer=true` / "Prisma"-nya kalau ditawarkan beberapa varian)
+   - `NEXTAUTH_URL` = URL project Vercel kamu, mis. `https://jadwal-tim-app.vercel.app`
+   - `NEXTAUTH_SECRET` = sama seperti nilai di `.env` lokal
+   - `ALLOWED_GOOGLE_DOMAIN` = `esb.co.id`
+   - `APPS_SCRIPT_URL`, `APPS_SCRIPT_TOKEN`, `GOOGLE_SHEET_TAB_NAME` = sama
+     seperti di `.env` lokal
+   - `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` boleh dikosongkan dulu untuk
+     tahap uji coba (app otomatis jalan di mode dev-login).
+4. **Ubah Build Command** (Project Settings → Build & Development Settings)
+   jadi:
+   ```
+   npx prisma migrate deploy && npm run build
+   ```
+   supaya migrasi database ikut diterapkan otomatis tiap deploy.
+5. Klik **Deploy**. Setelah selesai, buka URL-nya, login (dev-login), lalu
+   jalankan `node scripts/seed-employees.mjs` sekali (dengan `DATABASE_URL`
+   di `.env` lokal diarahkan sementara ke Postgres production) untuk isi
+   data karyawan awal -- atau tambahkan manual lewat halaman `/team`.
 
 Ini membuat `prisma/dev.db` (SQLite) sesuai `prisma/schema.prisma`.
 
