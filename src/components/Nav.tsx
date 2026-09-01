@@ -39,39 +39,39 @@ export default function Nav() {
   const isSupervisor = session?.user?.isSupervisor;
 
   return (
-    <header className="sticky top-0 z-10 border-b border-line bg-slate-950/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Brand />
+    // Bar horizontal di HP (default), jadi sidebar kiri mulai breakpoint md
+    // (md:sticky + md:h-screen supaya nempel & ikut scroll halaman).
+    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-line bg-slate-950/95 px-4 backdrop-blur sm:px-6 md:h-screen md:w-56 md:flex-col md:items-stretch md:gap-6 md:self-start md:border-b-0 md:border-r md:px-4 md:py-6">
+      <Brand />
 
-        <nav className="flex items-center gap-1 overflow-x-auto">
-          {LINKS.filter((link) => !link.supervisorOnly || isSupervisor).map((link) => {
-            const active = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors ${
-                  active ? "bg-accent text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {session?.user && (
-          <div className="hidden shrink-0 items-center gap-3 md:flex">
-            <span className="text-sm text-white/60">{session.user.name}</span>
-            <button
-              onClick={() => signOut()}
-              className="rounded-lg border-none bg-transparent px-2.5 py-2 text-sm text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+      <nav className="flex flex-1 items-center gap-1 overflow-x-auto md:flex-col md:items-stretch md:gap-1 md:overflow-visible">
+        {LINKS.filter((link) => !link.supervisorOnly || isSupervisor).map((link) => {
+          const active = pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors md:rounded-lg ${
+                active ? "bg-accent text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
             >
-              Keluar
-            </button>
-          </div>
-        )}
-      </div>
+              {link.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {session?.user && (
+        <div className="hidden shrink-0 items-center gap-3 md:mt-auto md:flex md:flex-col md:items-stretch md:gap-2">
+          <span className="text-sm text-white/60">{session.user.name}</span>
+          <button
+            onClick={() => signOut()}
+            className="rounded-lg border-none bg-transparent px-2.5 py-2 text-sm text-white/60 transition-colors hover:bg-white/10 hover:text-white md:text-left"
+          >
+            Keluar
+          </button>
+        </div>
+      )}
     </header>
   );
 }
