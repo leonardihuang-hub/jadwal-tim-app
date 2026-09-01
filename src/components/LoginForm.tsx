@@ -26,7 +26,7 @@ export default function LoginForm({ mode }: { mode: Mode }) {
   const [employeeId, setEmployeeId] = useState("");
   const searchParams = useSearchParams();
   const ssoCode = searchParams.get("ssoCode");
-  const [ssoSigningIn, setSsoSigningIn] = useState(Boolean(ssoCode));
+  const ssoSigningIn = Boolean(ssoCode);
 
   useEffect(() => {
     if (!employeeId && activeEmployees.length > 0) {

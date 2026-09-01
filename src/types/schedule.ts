@@ -2,8 +2,6 @@
 // bentuk "wide table" di Google Sheet. lib/googleSheets.ts yang bertugas
 // menerjemahkan antara dua bentuk ini (lihat catatan di file tersebut).
 
-export type ShiftType = "pagi" | "middle";
-
 export type RequestStatus = "pending" | "approved" | "rejected";
 
 export type LeaveType = "cuti" | "ganti_hari";

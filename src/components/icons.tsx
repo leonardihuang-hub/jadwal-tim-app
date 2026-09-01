@@ -20,17 +20,6 @@ export function CalendarIcon({ className = "h-4 w-4" }: IconProps) {
   );
 }
 
-export function SwapIcon({ className = "h-4 w-4" }: IconProps) {
-  return (
-    <svg {...base} className={className}>
-      <path d="M4 7h13" />
-      <path d="M14 4l3 3-3 3" />
-      <path d="M20 17H7" />
-      <path d="M10 20l-3-3 3-3" />
-    </svg>
-  );
-}
-
 export function ClipboardListIcon({ className = "h-4 w-4" }: IconProps) {
   return (
     <svg {...base} className={className}>
