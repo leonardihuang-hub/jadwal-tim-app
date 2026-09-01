@@ -143,7 +143,7 @@ export default function AssignGrid() {
                         <td className="whitespace-nowrap px-4 py-3 font-medium text-ink">
                           {format(new Date(date), "EEE, d MMM")}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="min-w-[9rem] px-4 py-3">
                           <select
                             className="field-input"
                             value={day.shiftPagiPolisi ?? ""}
@@ -162,7 +162,7 @@ export default function AssignGrid() {
                             </p>
                           )}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="min-w-[9rem] px-4 py-3">
                           <select
                             className="field-input"
                             value={day.shiftMiddle ?? ""}
