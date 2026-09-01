@@ -49,6 +49,10 @@ export default function AssignGrid() {
     setDays((prev) => ({ ...prev, [date]: { ...prev[date], ...patch } }));
   }
 
+  function selectedIds(e: React.ChangeEvent<HTMLSelectElement>): string[] {
+    return Array.from(e.target.selectedOptions).map((o) => o.value);
+  }
+
   async function saveDay(date: string) {
     const day = days[date];
     if (!day) return;
@@ -117,6 +121,9 @@ export default function AssignGrid() {
         </div>
       ) : (
         <div className="space-y-4">
+          <p className="text-xs text-ink/40">
+            Cuti / GH / OT bisa pilih lebih dari satu orang -- tahan Ctrl (Cmd di Mac) sambil klik.
+          </p>
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -125,6 +132,9 @@ export default function AssignGrid() {
                     <th className="px-4 py-3">Tanggal</th>
                     <th className="px-4 py-3">Pagi / polisi</th>
                     <th className="px-4 py-3">Middle</th>
+                    <th className="px-4 py-3">Cuti</th>
+                    <th className="px-4 py-3">GH</th>
+                    <th className="px-4 py-3">OT</th>
                     <th className="px-4 py-3"></th>
                     <th className="px-4 py-3">Status</th>
                   </tr>
@@ -176,6 +186,51 @@ export default function AssignGrid() {
                               Off: {day.offMiddleEmployeeIds.map(nameOf).join(", ")}
                             </p>
                           )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            multiple
+                            size={3}
+                            className="field-input"
+                            value={day.cutiEmployeeIds}
+                            onChange={(e) => updateDay(date, { cutiEmployeeIds: selectedIds(e) })}
+                          >
+                            {activeEmployees.map((e) => (
+                              <option key={e.id} value={e.id}>
+                                {e.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            multiple
+                            size={3}
+                            className="field-input"
+                            value={day.gantiHariEmployeeIds}
+                            onChange={(e) => updateDay(date, { gantiHariEmployeeIds: selectedIds(e) })}
+                          >
+                            {activeEmployees.map((e) => (
+                              <option key={e.id} value={e.id}>
+                                {e.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="px-4 py-3">
+                          <select
+                            multiple
+                            size={3}
+                            className="field-input"
+                            value={day.overtimeEmployeeIds}
+                            onChange={(e) => updateDay(date, { overtimeEmployeeIds: selectedIds(e) })}
+                          >
+                            {activeEmployees.map((e) => (
+                              <option key={e.id} value={e.id}>
+                                {e.name}
+                              </option>
+                            ))}
+                          </select>
                         </td>
                         <td className="px-4 py-3">
                           <button onClick={() => saveDay(date)} disabled={status?.saving} className="btn-secondary">
