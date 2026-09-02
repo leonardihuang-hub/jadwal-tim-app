@@ -42,17 +42,37 @@ export default function Nav() {
 
   // Badge jumlah pengajuan menunggu di menu "Approval" -- reuse endpoint
   // yang sama dipakai ApprovalQueue, cuma dihitung status "pending"-nya.
+  // Refresh tiap 30 detik + tiap kali tab ini balik aktif, supaya tidak
+  // perlu reload manual habis approve/reject.
   useEffect(() => {
     if (!isSupervisor) return;
-    Promise.all([
-      fetch("/api/leave-requests").then((res) => res.json()),
-      fetch("/api/swap-requests").then((res) => res.json())
-    ]).then(([leave, swap]) => {
-      const pending = [...(leave.requests ?? []), ...(swap.requests ?? [])].filter(
-        (r: { status: string }) => r.status === "pending"
-      ).length;
-      setPendingCount(pending);
-    });
+
+    let cancelled = false;
+    function loadPendingCount() {
+      Promise.all([
+        fetch("/api/leave-requests").then((res) => res.json()),
+        fetch("/api/swap-requests").then((res) => res.json())
+      ]).then(([leave, swap]) => {
+        if (cancelled) return;
+        const pending = [...(leave.requests ?? []), ...(swap.requests ?? [])].filter(
+          (r: { status: string }) => r.status === "pending"
+        ).length;
+        setPendingCount(pending);
+      });
+    }
+
+    function onVisible() {
+      if (document.visibilityState === "visible") loadPendingCount();
+    }
+
+    loadPendingCount();
+    const interval = setInterval(loadPendingCount, 30_000);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [isSupervisor]);
 
   return (
