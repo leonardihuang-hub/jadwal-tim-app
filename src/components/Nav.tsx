@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -37,6 +38,22 @@ export default function Nav() {
   }
 
   const isSupervisor = session?.user?.isSupervisor;
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Badge jumlah pengajuan menunggu di menu "Approval" -- reuse endpoint
+  // yang sama dipakai ApprovalQueue, cuma dihitung status "pending"-nya.
+  useEffect(() => {
+    if (!isSupervisor) return;
+    Promise.all([
+      fetch("/api/leave-requests").then((res) => res.json()),
+      fetch("/api/swap-requests").then((res) => res.json())
+    ]).then(([leave, swap]) => {
+      const pending = [...(leave.requests ?? []), ...(swap.requests ?? [])].filter(
+        (r: { status: string }) => r.status === "pending"
+      ).length;
+      setPendingCount(pending);
+    });
+  }, [isSupervisor]);
 
   return (
     // Bar horizontal di HP (default), jadi sidebar kiri mulai breakpoint md
@@ -51,11 +68,16 @@ export default function Nav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors md:rounded-lg ${
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors md:rounded-lg ${
                 active ? "bg-accent text-white" : "text-white/60 hover:bg-white/10 hover:text-white"
               }`}
             >
               {link.label}
+              {link.href === "/approvals" && pendingCount > 0 && (
+                <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold text-white">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}
